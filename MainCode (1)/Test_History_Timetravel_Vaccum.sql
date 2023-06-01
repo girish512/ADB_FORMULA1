@@ -1,0 +1,12 @@
+-- Databricks notebook source
+DESC HISTORY F1_PROJECT_DB.results;
+
+SELECT * FROM F1_PROJECT_DB.results VERSION AS OF 1;
+
+SELECT * FROM F1_PROJECT_DB.results TIMESTAMP AS OF '2023-04-28T06:29:09.000+0000'
+
+SELECT * FROM F1_PROJECT_DB.results 
+
+-- COMMAND ----------
+
+
