@@ -1,22 +1,30 @@
 # Databricks notebook source
-# MAGIC %run "../CommonCode/ReadFiles"
+# MAGIC %run "../CommonCode (1)/ReadFiles"
 
 # COMMAND ----------
 
-# MAGIC %run "../CommonCode/SQLDB_custom_functions"
+# MAGIC %run "../CommonCode (1)/SQLDB_custom_functions"
 
 # COMMAND ----------
 
 # Imports
-from pyspark.sql.functions import current_timestamp,col
+from pyspark.sql.functions import current_timestamp,col,lit,when
 from pyspark.sql.dataframe import DataFrameWriter
+
 
 # COMMAND ----------
 
-# Read Circuit File csv
+#Read circuitfile table from sql db
+tb_circuit_df=fetch_sqltable_data("select * from circuit","circuit_id","0","10","1")\
+.withColumnRenamed("circuit_id","tb_circuit_id")\
+.select("tb_circuit_id")
+
+# COMMAND ----------
+
+# Read Circuit File csv and adding ingestion date
 select_circuitFile_DF = df_circuitfile.select(col("circuitId").alias("circuit_id"),\
 col("circuitRef").alias("circuit_ref"),\
-col("name"),\
+col("name").alias("circuit_name"),\
 col("location"),\
 col("country"),\
 col("lat").alias("latitude"),\
@@ -24,38 +32,41 @@ col("lng").alias("longitude"),\
 col("alt").alias("altitude"))
 
 dfFinal_circuitFile = select_circuitFile_DF.withColumn("ingested_date", current_timestamp())
-#dfFinal_circuitFile.show()
-df_val_circuitID = select_circuitFile_DF.select("circuit_id").collect()
+display(dfFinal_circuitFile)
 
-tb_circuit_df=fetch_sqltable_data("select * from circuit")
+#adding additional field to know whether the record is of update or insert
 
-if (tb_circuit_df.count()>0):
-            operation = "update"
-else:
-            operation = "insert"
+tb_df_df = dfFinal_circuitFile.join(tb_circuit_df,\
+                             dfFinal_circuitFile.circuit_id==tb_circuit_df.tb_circuit_id,\
+                                 'left_outer').\
+                        withColumn("operation", when(dfFinal_circuitFile.circuit_id==tb_circuit_df.tb_circuit_id,"update").otherwise("insert"))
+
+# selecting required columns to create temp table in the db
+circuit_final_df = tb_df_df.select(tb_df_df.circuit_id,\
+                        tb_df_df.circuit_name,
+                        tb_df_df.location,\
+                        tb_df_df.country,\
+                        tb_df_df.latitude,\
+                        tb_df_df.longitude,\
+                        tb_df_df.altitude,\
+                        tb_df_df.ingested_date,\
+                        tb_df_df.operation)
+
+display(tb_df_df)                        
+
+
+create_temp_table(circuit_final_df,"circuit_tmp")
+
+
+
             
 
-for circuit in df_val_circuitID:\
-    sql_query = (f"SELECT count(*)as abc FROM DB_FORMULA1.DBO.CIRCUIT WHERE CIRCUIT_ID = '{circuit.circuit_id}'");\
-    tb_circuit_df=fetch_sqltable_data(sql_query);\
-    if (tb_circuit_df.count()>0):
-                operation = "update"
-                print(operation)
-    else:
-                operation = "insert"
-                print(operation)
-    
+
 
 
 
 
 # COMMAND ----------
 
-tb_circuit_file = spark.read.format("jdbc")\
-    .option("url","jdbc:sqlserver://serverdbformula1.database.windows.net:1433;database=DB_FORMULA1;user=adm@serverdbformula1;password=Girish512@")\
-    .option("query",f"SELECT * FROM DB_FORMULA1.DBO.CIRCUIT WHERE CIRCUIT_ID in {df_val_circuitID}")\
-    .load()
-
-# COMMAND ----------
-
-
+# MAGIC %sql  
+# MAGIC select * from vw_circuit
