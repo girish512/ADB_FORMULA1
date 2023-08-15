@@ -51,3 +51,19 @@ LOCATION '/mnt/dlgirishproject/data/Database/results'
 -- MAGIC if(spark.sql("DROP TABLE IF EXISTS f1_project_db.RESULTS")):\
 -- MAGIC dbutils.fs.rm('/mnt/dlgirishproject/data/Database/results',recurse=True)
 -- MAGIC # DROP TABLE f1_project_db.RESULTS --> IT WILL DROP THE TABLE. BUT NOT THE STORAGE FILES. sO WE HAVE TO USE ABOVE COMMAND.
+
+-- COMMAND ----------
+
+CREATE TABLE IF NOT EXISTS f1_project_db.RESULTS_MNG
+(resultId INT,
+ raceId INT,
+  driverId INT,
+  constructorId INT ,
+  position INT,
+  points INT,
+  created_date TIMESTAMP,
+  updated_date TIMESTAMP,
+  file_date STRING)
+USING DELTA
+--AS select * from tv_results where constructorId =1
+

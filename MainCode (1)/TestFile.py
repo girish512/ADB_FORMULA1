@@ -1,9 +1,13 @@
 # Databricks notebook source
 #Imports
-from pyspark.sql.functions import when, col, sum, asc, desc
+from pyspark.sql.functions import when, col, sum, asc, desc, max
 from pyspark.sql.types import DataType, StringType, List
 from pyspark.sql import window
 from pyspark.sql import DataFrame
+
+# COMMAND ----------
+
+# MAGIC %run "../CommonCode (1)/ReadFiles"
 
 # COMMAND ----------
 
@@ -37,6 +41,7 @@ races_Details = racesDF_Parquet.join(circuitsDF_Parquet,racesDF_Parquet.circuit_
         results_csv.points,\
         results_csv.position,\
         results_csv.driverId)
+races_Details.explain()
 
 display(races_Details.filter("points !=0"))
 races_Details.count()
@@ -78,7 +83,7 @@ display(driver_points_results)
 # Read List of Files
 
 filelist_df=spark.createDataFrame(dbutils.fs.ls("/mnt/dlgirishproject/data/Files/Input/f1db_csv/filelist")) #converts list to df
-
+print(filelist_df.select(col("name")).collect())
 #selects name from df and converts to list and iterate
 for file_lst in filelist_df.select(col("name")).collect():\
     display(spark.read.option("header", True).csv(f"/mnt/dlgirishproject/data/Files/Input/f1db_csv/filelist/{file_lst[0]}"))
@@ -121,4 +126,39 @@ dbutils.fs.rm("/mnt/dlgirishproject/data/Files/Output/races/race_year=1953",recu
 races_pq_df =  spark.read.parquet("/mnt/dlgirishproject/data/Files/Output/races")
 distinctraces = races_pq_df.select(col("race_year")).distinct()
 
-display(distinctraces)
+display(races_pq_df)
+
+# COMMAND ----------
+
+# Handling bad records
+df_circuitfile_GR = df_circuitfile.filter(col("corrupt_record").isNull())
+df_circuitfile_maxval = df_circuitfile_GR.agg(max("circuitId")).withColumnRenamed("max(circuitId)","circuitIdmax").collect()
+df_circuitfile_GR_agg =  df_circuitfile_GR.\
+                            select("circuitId","circuitRef").\
+                                filter(df_circuitfile_GR.circuitId==df_circuitfile_maxval[0].circuitIdmax)
+                            agg(max("circuitId")).\
+                                select ("circuitId","circuitRef")
+print(df_circuitfile_maxval)
+df_circuitfile_maxval[0].circuitIdmax
+display(df_circuitfile_GR_agg)
+
+
+
+# COMMAND ----------
+
+#append values to list
+sample_list = list((1,2),(1,3))
+type(sample_list)
+print(sample_list)
+sample_list.append("4")
+print(sample_list)
+
+sample_list1 = [(1,2),(2,3)]
+type(sample_list1)
+len(sample_list1[1])
+
+sample_tuple = (1,2)
+type(sample_tuple)
+sample_tuple[0]
+
+

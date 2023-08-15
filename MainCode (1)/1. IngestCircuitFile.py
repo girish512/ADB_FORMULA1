@@ -45,4 +45,4 @@ dfFinal_circuitFile.write\
 
 # MAGIC %sql
 # MAGIC
-# MAGIC SELECT * FROM f1_project_db.circuit
+# MAGIC SELECT count(*) FROM f1_project_db.results_mng

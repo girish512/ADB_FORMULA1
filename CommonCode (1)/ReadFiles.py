@@ -24,7 +24,8 @@ circuitsFileSchema = StructType([StructField("circuitId", IntegerType(),True), \
                     StructField("lat", DecimalType(),True), \
                     StructField("lng", DecimalType(),True), \
                     StructField("alt", IntegerType(),True), \
-                    StructField("url", StringType(),True)]);
+                    StructField("url", StringType(),True),\
+                    StructField("corrupt_record", StringType(),True)]);
 
 racesFileSchema = StructType([StructField("raceId", IntegerType(), True),\
                   StructField("year", IntegerType(), True),\
@@ -62,6 +63,8 @@ resultsFileSchema = StructType([StructField("resultId", IntegerType(), False),\
 df_circuitfile=spark.read \
 .option("header", True) \
 .option("inferSchema", True) \
+.option("mode","PERMISSIVE")\
+.option("columnNameOfCorruptRecord","corrupt_record")\
 .schema(circuitsFileSchema) \
 .csv(f"{InputSourcePath}/f1db_csv/{CircuitsFileName}")
 
