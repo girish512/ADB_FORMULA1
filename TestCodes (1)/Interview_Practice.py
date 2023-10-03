@@ -6,6 +6,7 @@
 from pyspark.sql.functions import col,current_timestamp,filter
 from pyspark.sql.types import StructType,StructField,IntegerType,StringType,DecimalType,Row
 
+
 # COMMAND ----------
 
 Results_Schema = StructType([StructField("resultId", IntegerType(), False),\
@@ -54,3 +55,4 @@ df_rs_c_grp = df_result_circuit.groupBy("driverId","name")\
 df_totalPoints = df_result_circuit.agg(sum(df_result_circuit.points))
 df_result_circuit.show(10)
 display(df_rs_c_grp)
+

@@ -26,9 +26,9 @@ dbutils.fs.mount(
 
 # COMMAND ----------
 
-#display(dbutils.fs.ls(dbutils.secrets.get(scope="projectFormula1-scope", key="InputFilePath")))
-#display(dbutils.fs.ls("/mnt/dlgirishproject/"))
-#dbutils.fs.unmount("/mnt/dlgirishproject/data")
+display(dbutils.fs.ls(dbutils.secrets.get(scope="projectFormula1-scope", key="InputFilePath")))
+display(dbutils.fs.ls("/mnt/dlgirishproject/"))
+dbutils.fs.unmount("/mnt/dlgirishproject/data")
 #dbutils.fs.mounts()
 
 # COMMAND ----------
